@@ -1,4 +1,5 @@
 import { Platform } from "./Platform";
+import { Bullet } from "./Bullet";
 
 export class Player extends Platform {
   private gravity: number;
@@ -19,7 +20,7 @@ export class Player extends Platform {
     gravity: number,
     imgSrc: string
   ) {
-    super(x, y, height, width, color, ctx, speed);
+    super(x, y, height, width, color, ctx, speed, imgSrc);
     this.gravity = gravity;
     this.dx = 0;
     this.dy = 0;
@@ -57,5 +58,28 @@ export class Player extends Platform {
     this.dy = -8;
     this.isJumping = true;
     this.isGrounded = false;
+  }
+
+  // Array to store bullets
+  public bullets: Bullet[] = [];
+
+  // Method to shoot a bullet
+  shoot() {
+    this.image.src = "blueT.png";
+    const bullet = new Bullet(this.X + this.Width / 2, this.Y, this.ctx);
+    this.bullets.push(bullet);
+  }
+
+  // Method to update and draw bullets
+  updateBullets() {
+    this.bullets.forEach((bullet, index) => {
+      bullet.move();
+      bullet.draw();
+
+      // Remove bullets that are out of screen
+      if (bullet.Y < 0) {
+        this.bullets.splice(index, 1);
+      }
+    });
   }
 }

@@ -1,4 +1,5 @@
 export class Platform {
+  // Position, size, color, and speed properties
   private x: number;
   private y: number;
   private height: number;
@@ -6,6 +7,8 @@ export class Platform {
   private color: string;
   public ctx: CanvasRenderingContext2D;
   public speed: number;
+  public image: HTMLImageElement;
+
   constructor(
     x: number,
     y: number,
@@ -13,7 +16,8 @@ export class Platform {
     width: number,
     color: string,
     ctx: CanvasRenderingContext2D,
-    speed: number
+    speed: number,
+    src: string
   ) {
     this.x = x;
     this.y = y;
@@ -22,6 +26,8 @@ export class Platform {
     this.color = color;
     this.ctx = ctx;
     this.speed = speed;
+    this.image = new Image();
+    this.image.src = src;
   }
 
   set X(x: number) {
@@ -48,15 +54,18 @@ export class Platform {
     return this.width;
   }
 
+  // Draw platform as a rectangle
   draw() {
     this.ctx.fillStyle = this.color;
     this.ctx.fillRect(this.x, this.y, this.width, this.height);
   }
 
-  drawWithImg(image: HTMLImageElement) {
-    this.ctx.drawImage(image, this.x, this.y, this.width, this.height);
+  // Draw platform with an image
+  drawWithImg() {
+    this.ctx.drawImage(this.image, this.x, this.y, this.width, this.height);
   }
 
+  // Move platform down the screen
   move() {
     this.y += this.speed;
   }
