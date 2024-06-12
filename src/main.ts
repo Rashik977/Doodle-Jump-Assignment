@@ -222,6 +222,11 @@ function startGame() {
     canvas.width / 2,
     canvas.height / 2 + 150
   );
+  ctx.fillText(
+    "Press Esc to pause the game",
+    canvas.width / 2,
+    canvas.height / 2 + 200
+  );
 
   window.addEventListener("keydown", (e) => {
     if (e.key === "Enter") {
