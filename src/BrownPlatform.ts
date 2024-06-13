@@ -36,7 +36,7 @@ export class BrownPlatform extends Platform {
     if (this.isBreaking) {
       this.currentTime += deltaTime;
       if (this.currentTime >= this.breakTime) {
-        this.Y += this.speed; // Platform falls after breaking
+        this.Y += this.speed * deltaTime * 0.01; // Platform falls after breaking
       }
     }
   }

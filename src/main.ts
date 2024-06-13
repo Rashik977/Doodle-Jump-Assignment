@@ -8,6 +8,7 @@ import {
 import { Player } from "./Player";
 import { BrownPlatform } from "./BrownPlatform";
 import { Enemy } from "./Enemy";
+import { BluePlatform } from "./BluePlatform";
 
 const canvas = document.getElementById("canvas") as HTMLCanvasElement;
 const ctx = canvas.getContext("2d") as CanvasRenderingContext2D;
@@ -36,7 +37,7 @@ fallingSound.volume = 0.4;
 
 // Time variables for platform spawning
 let PlatformSpawnTime = 0;
-const PlatformSpawnInterval = 500;
+const PlatformSpawnInterval = 1000;
 
 // Counter for green platforms
 let greenPlatformCount = 0;
@@ -44,6 +45,9 @@ let greenPlatformCount = 0;
 // Arrays to store platforms and enemies
 const platforms: Platform[] = [];
 const enemies: Enemy[] = [];
+
+// Initial time variable for delta time calculation
+let lastTime = Date.now();
 
 // Generate platforms
 function generatePlatforms() {
@@ -57,8 +61,14 @@ function generatePlatforms() {
       greenPlatformCount >=
       randomNumber(1, 50 - (gameDifficulty > 45 ? 45 : gameDifficulty))
     ) {
-      platforms.push(new BrownPlatform(x, y, height, width, ctx, 1));
+      platforms.push(new BrownPlatform(x, y, height, width, ctx, 200));
       greenPlatformCount = 0;
+      //Generate blue platform after a certain number of green platforms
+    } else if (
+      greenPlatformCount >=
+      randomNumber(1, 50 - (gameDifficulty > 45 ? 45 : gameDifficulty))
+    ) {
+      platforms.push(new BluePlatform(x, y, height, width, ctx, 200));
     } else {
       platforms.push(
         new Platform(x, y, height, width, "green", ctx, 1, "greenplatform.png")
@@ -98,6 +108,7 @@ function generateInitialPlatforms() {
     1,
     "greenplatform.png"
   );
+
   platforms.push(basePlatform);
   for (let i = 0; i < 6; i++) {
     const x = randomNumber(0, canvas.width - 50);
@@ -122,7 +133,6 @@ const player = new Player(
   "red",
   ctx,
   1,
-  0.09,
   "blueR.png"
 );
 
@@ -152,9 +162,9 @@ window.addEventListener("keydown", (e) => {
         ctx.textAlign = "center";
         ctx.fillText("Game Paused", canvas.width / 2, canvas.height / 2);
       } else {
-        update(0);
+        // lastTime = performance.now(); // Reset lastTime when resuming the game
+        requestAnimationFrame(update);
       }
-
       break;
   }
 });
@@ -248,7 +258,8 @@ function startGame() {
   window.addEventListener("keydown", (e) => {
     if (e.key === "Enter") {
       gameStarted = true;
-      update(0);
+      // lastTime = performance.now(); // Initialize lastTime when starting the game
+      requestAnimationFrame(update);
     }
   });
 }
@@ -264,6 +275,10 @@ function update(timestamp: number) {
   // Return if game is not running
   if (!gameRunning || gamePaused) return;
 
+  // Calculate delta time
+  const deltaTime = Date.now() - lastTime;
+  lastTime = Date.now();
+
   ctx.clearRect(0, 0, canvas.width, canvas.height);
 
   // Arrays to store platforms and enemies to remove
@@ -276,18 +291,18 @@ function update(timestamp: number) {
 
     // Move platform if player is jumping
     if (player.isJumping) {
-      platform.move();
+      platform.move(deltaTime);
       platform.speed = gamespeed;
     }
 
     // Update brown platform if it's breaking
     if (platform instanceof BrownPlatform) {
-      platform.update(16);
+      platform.update(deltaTime);
     }
 
     // Check collision with player
     if (collisionDetectionPlatform(player, platform)) {
-      if (!(platform instanceof BrownPlatform)) player.jump();
+      if (!(platform instanceof BrownPlatform)) player.jump(deltaTime);
 
       // Start breaking brown platform if not already breaking
       if (platform instanceof BrownPlatform && !platform.isBreaking) {
@@ -310,7 +325,7 @@ function update(timestamp: number) {
   if (player.Y < 0) player.Y = 0;
 
   player.drawWithImg();
-  player.move();
+  player.move(deltaTime);
 
   // Game over if player falls out of screen
   if (player.Y + player.Height > canvas.height + 100) {
@@ -325,11 +340,11 @@ function update(timestamp: number) {
   // Iterate through enemies
   enemies.forEach((enemy, index) => {
     enemy.drawWithImg();
-    enemy.move();
+    enemy.move(deltaTime);
 
     // Move enemies with the platforms
     if (player.isJumping) {
-      enemy.move();
+      enemy.move(deltaTime);
     }
 
     // Check collision with player and game over
@@ -362,7 +377,7 @@ function update(timestamp: number) {
   }
 
   // Update and draw bullets
-  player.updateBullets();
+  player.updateBullets(deltaTime);
 
   // Check for bullet-enemy collisions
   player.bullets.forEach((bullet, bulletIndex) => {
@@ -392,9 +407,7 @@ function update(timestamp: number) {
     gameDifficulty += 0.5;
   }
 
-  console.log(gameDifficulty);
-
   requestAnimationFrame(update);
 }
-
+lastTime = Date.now();
 requestAnimationFrame(update);

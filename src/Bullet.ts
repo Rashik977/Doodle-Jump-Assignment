@@ -58,7 +58,7 @@ export class Bullet {
   }
 
   // Method to move the bullet
-  move() {
-    this.y -= this.speed;
+  move(deltaTime: number) {
+    this.y -= this.speed * deltaTime * 0.01;
   }
 }

@@ -19,11 +19,9 @@ export class Player extends Platform {
     color: string,
     ctx: CanvasRenderingContext2D,
     speed: number,
-    gravity: number,
     imgSrc: string
   ) {
     super(x, y, height, width, color, ctx, speed, imgSrc);
-    this.gravity = gravity;
     this.dx = 0;
     this.dy = 0;
     this.isJumping = false;
@@ -31,33 +29,35 @@ export class Player extends Platform {
     this.ctx = ctx;
     this.image = new Image();
     this.image.src = imgSrc;
+    this.gravity = 5;
   }
 
   moveLeft() {
     this.image.src = "blueL.png";
-    this.dx = -2;
+    this.dx = -2; // Adjust speed by deltaTime
   }
 
   moveRight() {
     this.image.src = "blueR.png";
-    this.dx = 2;
+    this.dx = 2; // Adjust speed by deltaTime
   }
 
-  move() {
-    this.dy += this.gravity;
-    this.Y += this.dy;
-    this.X += this.dx;
+  move(deltaTime: number) {
+    this.dy += this.gravity * deltaTime * 0.01; // Adjust speed by deltaTime
+    this.Y += this.dy * deltaTime * 0.01;
+    this.X += this.dx * deltaTime * 0.01;
     if (this.X < 0) {
-      this.X = this.ctx.canvas.width - this.Width;
+      this.X = (this.ctx.canvas.width - this.Width) * deltaTime * 0.01;
     }
     if (this.X + this.Width > this.ctx.canvas.width) {
       this.X = 0;
     }
   }
 
-  jump() {
+  jump(deltaTime: number) {
     // if (!this.isGrounded) return;
-    this.dy = -7;
+    this.dy = -1000 * deltaTime * 0.01; // Adjust speed by deltaTime
+    console.log(this.dy);
     this.isJumping = true;
     // this.isGrounded = false;
     jumpSound.play();
@@ -74,9 +74,9 @@ export class Player extends Platform {
   }
 
   // Method to update and draw bullets
-  updateBullets() {
+  updateBullets(deltaTime: number) {
     this.bullets.forEach((bullet, index) => {
-      bullet.move();
+      bullet.move(deltaTime);
       bullet.draw();
 
       // Remove bullets that are out of screen

@@ -66,7 +66,7 @@ export class Platform {
   }
 
   // Move platform down the screen
-  move() {
-    this.y += this.speed;
+  move(deltaTime: number) {
+    this.y += 40 * deltaTime * 0.01;
   }
 }

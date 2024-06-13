@@ -20,9 +20,8 @@ export class Enemy extends Platform {
     this.img.src = imgSrc;
   }
 
-  move() {
-    super.move();
-    this.X += this.speed * this.direction;
+  move(deltaTime: number) {
+    this.X += this.speed * deltaTime * 0.01 * this.direction;
     if (this.X <= 0 || this.X + this.Width > this.ctx.canvas.width) {
       this.direction *= -1;
     }
