@@ -14,7 +14,7 @@ export class BrownPlatform extends Platform {
     speed: number
   ) {
     super(x, y, height, width, "brown", ctx, speed, "brownplatform.png");
-    this.breakTime = 100; // Time in milliseconds before the platform breaks
+    this.breakTime = 50; // Time in milliseconds before the platform breaks
     this.currentTime = 0;
     this.isBreaking = false;
   }

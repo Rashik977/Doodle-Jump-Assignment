@@ -24,10 +24,19 @@ let highScore = Number(localStorage.getItem("highScore"));
 let gameRunning = true;
 let gameStarted = false;
 let gamePaused = false;
+let gameDifficulty = 1;
+
+const enemySound = new Audio("sound/monsterblizu.mp3");
+const breakSound = new Audio("sound/lomise.mp3");
+const fallingSound = new Audio("sound/falling-sound-arcade.mp3");
+const playerDeathByMonster = new Audio("sound/jumponmonster-arcade.mp3");
+const enemyDeath = new Audio("sound/barrel-explosion.mp3");
+
+fallingSound.volume = 0.4;
 
 // Time variables for platform spawning
 let PlatformSpawnTime = 0;
-const PlatformSpawnInterval = 1000;
+const PlatformSpawnInterval = 500;
 
 // Counter for green platforms
 let greenPlatformCount = 0;
@@ -40,11 +49,14 @@ const enemies: Enemy[] = [];
 function generatePlatforms() {
   for (let i = 0; i < 3; i++) {
     const x = randomNumber(0, canvas.width - 50);
-    const y = -200 * i;
-    const height = 15;
-    const width = 50;
-
-    if (greenPlatformCount >= randomNumber(1, 5)) {
+    const y = -100 * i;
+    const height = 20;
+    const width = 70;
+    // Generate brown platform after a certain number of green platforms
+    if (
+      greenPlatformCount >=
+      randomNumber(1, 50 - (gameDifficulty > 45 ? 45 : gameDifficulty))
+    ) {
       platforms.push(new BrownPlatform(x, y, height, width, ctx, 1));
       greenPlatformCount = 0;
     } else {
@@ -54,7 +66,10 @@ function generatePlatforms() {
       greenPlatformCount++;
     }
 
-    if (randomNumber(1, 10) === 1) {
+    if (
+      randomNumber(1, 100 - (gameDifficulty > 80 ? 80 : gameDifficulty)) === 1
+    ) {
+      enemySound.play();
       enemies.push(
         new Enemy(
           randomNumber(0, canvas.width - 150),
@@ -76,8 +91,8 @@ function generateInitialPlatforms() {
   const basePlatform = new Platform(
     canvas.width / 2,
     canvas.height - 100,
-    15,
-    50,
+    20,
+    70,
     "green",
     ctx,
     1,
@@ -87,8 +102,8 @@ function generateInitialPlatforms() {
   for (let i = 0; i < 6; i++) {
     const x = randomNumber(0, canvas.width - 50);
     const y = i * 200;
-    const height = 15;
-    const width = 50;
+    const height = 20;
+    const width = 70;
     const color = "green";
     platforms.push(
       new Platform(x, y, height, width, color, ctx, 1, "greenplatform.png")
@@ -125,9 +140,6 @@ window.addEventListener("keydown", (e) => {
       break;
     case "d":
       player.moveRight();
-      break;
-    case " ":
-      player.jump();
       break;
     case "ArrowUp":
       player.shoot();
@@ -202,23 +214,22 @@ function gameOver() {
 
 // Start game function
 function startGame() {
-  ctx.fillStyle = "white";
+  ctx.fillStyle = "black";
   ctx.font = "50px Arial";
   ctx.textAlign = "center";
-  ctx.fillText("Press Enter to Start", canvas.width / 2, canvas.height / 2);
+  ctx.fillText(
+    "Press Enter to Start",
+    canvas.width / 2,
+    canvas.height / 2 - 100
+  );
   ctx.font = "20px Arial";
   ctx.fillText(
     "Use Left and Right Arrow keys to move",
     canvas.width / 2,
-    canvas.height / 2 + 50
-  );
-  ctx.fillText(
-    "Press Space to jump",
-    canvas.width / 2,
     canvas.height / 2 + 100
   );
   ctx.fillText(
-    "Press Up Arrow to shoot",
+    "Press Up Arrow to shoot the enemies",
     canvas.width / 2,
     canvas.height / 2 + 150
   );
@@ -226,6 +237,12 @@ function startGame() {
     "Press Esc to pause the game",
     canvas.width / 2,
     canvas.height / 2 + 200
+  );
+  ctx.fillStyle = "red";
+  ctx.fillText(
+    "Game will get harder as you progress",
+    canvas.width / 2,
+    canvas.height / 2 + 250
   );
 
   window.addEventListener("keydown", (e) => {
@@ -270,13 +287,11 @@ function update(timestamp: number) {
 
     // Check collision with player
     if (collisionDetectionPlatform(player, platform)) {
-      player.isGrounded = true;
-      player.Y = platform.Y - player.Height;
-      player.dy = 0;
-      player.isJumping = false;
+      if (!(platform instanceof BrownPlatform)) player.jump();
 
       // Start breaking brown platform if not already breaking
       if (platform instanceof BrownPlatform && !platform.isBreaking) {
+        breakSound.play();
         platform.startBreaking();
       }
     }
@@ -292,6 +307,8 @@ function update(timestamp: number) {
     score++;
   }
 
+  if (player.Y < 0) player.Y = 0;
+
   player.drawWithImg();
   player.move();
 
@@ -301,6 +318,7 @@ function update(timestamp: number) {
       highScore = score;
       localStorage.setItem("highScore", score.toString());
     }
+    fallingSound.play();
     gameOver();
   }
 
@@ -320,6 +338,7 @@ function update(timestamp: number) {
         highScore = score;
         localStorage.setItem("highScore", score.toString());
       }
+      playerDeathByMonster.play();
       gameOver();
     }
 
@@ -355,6 +374,9 @@ function update(timestamp: number) {
         bullet.Y + bullet.Height > enemy.Y
       ) {
         // Remove the bullet and the enemy on collision
+        enemySound.pause();
+        enemySound.currentTime = 0;
+        enemyDeath.play();
         player.bullets.splice(bulletIndex, 1);
         enemies.splice(enemyIndex, 1);
       }
@@ -364,6 +386,13 @@ function update(timestamp: number) {
   // Draw score and high score
   drawScore();
   drawHighScore();
+
+  // Increase game difficulty
+  if (score % 40 === 0 && score !== 0) {
+    gameDifficulty += 0.5;
+  }
+
+  console.log(gameDifficulty);
 
   requestAnimationFrame(update);
 }

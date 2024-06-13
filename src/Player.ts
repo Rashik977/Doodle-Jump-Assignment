@@ -1,6 +1,8 @@
 import { Platform } from "./Platform";
 import { Bullet } from "./Bullet";
 
+const jumpSound = new Audio("sound/jump.wav");
+
 export class Player extends Platform {
   private gravity: number;
   public dx: number;
@@ -54,10 +56,11 @@ export class Player extends Platform {
   }
 
   jump() {
-    if (!this.isGrounded) return;
-    this.dy = -8;
+    // if (!this.isGrounded) return;
+    this.dy = -7;
     this.isJumping = true;
-    this.isGrounded = false;
+    // this.isGrounded = false;
+    jumpSound.play();
   }
 
   // Array to store bullets

@@ -1,3 +1,4 @@
+const bulletSound = new Audio("sound/arcade-laser.mp3");
 export class Bullet {
   private x: number;
   private y: number;
@@ -51,6 +52,7 @@ export class Bullet {
 
   // Method to draw the bullet
   draw() {
+    bulletSound.play();
     this.ctx.fillStyle = this.color;
     this.ctx.fillRect(this.x, this.y, this.width, this.height);
   }
